@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <title>kingsoft minisite</title>
+        <link rel="stylesheet" type="text/css" href="https://hotnews.duba.com/minisite/1335/css/index2.min.css">
+    </head>
+
+    <body oncontextmenu="return false" ondragstart="return false" onselectstart ="return false"> 
+        <div class="wrap" id="J_wrap">
+            <div class="header">
+                <div class="headerInner">
+                    <div class="headerTab" id="J_tab">
+                    </div>
+                </div>
+            </div>
+            <div class="section clearfix" id="J_newBox"></div>
+        </div>
+        <div class="extend" id="J_Extend"></div>
+
+        <input type="hidden" id="duba_tryno" value="1334,1335,1337,1339,1509,1516,1517,1601,1338,8001,8003" />
+        <input type="hidden" id="genius_enable" value="1" />
+        <input type="hidden" id="kdesk_enable" value="1" />
+        <input type="hidden" id="kwifi_enable" value="1" />
+        <script type="text/javascript">
+            var webTryno = '1335';
+            var duba_tryno = "1334,1335,1337,1339,1509,1516,1517,1601,1338,8001,8003",
+                genius_enable = "1",
+                kdesk_enable = "1",
+                kwifi_enable = "1",
+                head_ad_enable = "1",
+                pendant_enable = "1";
+                kprotectenable = "1";
+                liebaoenable = "1";
+        </script>
+
+        <script type="text/javascript">
+            var jsonID = 0,
+                isAuto = 0,
+                json = {$data};
+        </script>
+
+        <script type="text/javascript">
+            var isClientJs = false,
+                clientJsErrMsg = null;
+            (function() {
+                function checkClientClose() {
+                    try {
+                        var r = window.external.CallWrapper('needclose', '{"jsonid":' + json.id + '}');
+                        if (0 != r.length) {
+                            var ret = JSON.parse(r);
+                            if(ret && ret.isneedclose == 1) {
+                                return true;
+                            }
+                        }
+                    } catch (e) {}
+                    return false;
+                }
+                if(checkClientClose()) {
+                    // exit
+                    return;
+                }
+
+                function execScript(obj) {
+                    try {
+                        var r = window.external.CallWrapper('getlocalfile', '{"filename":"' + obj.filename + '","md5":"' + obj.md5 + '"}'),
+                            errMsg = '';
+                        if (0 != r.length) {
+                            var ret = JSON.parse(r);
+                            if(ret.content) {
+                                eval(ret.content);
+                                isClientJs = true;
+                                return;
+                            }
+                            errMsg = 'NativeError: content is empty';
+                        } else {
+                            errMsg = 'NativeError: getlocalfile method no support';
+                        }
+                        throw new Error(errMsg);
+                    } catch (e) {
+                        clientJsErrMsg = e + '.';
+                        document.write(unescape('%3Cscript type="text/javascript" src="' + obj.url + '"%3E%3C/script%3E'));
+                    }
+                }
+
+                var jsURLs = [
+                    {filename: 'jquery-3.0.0.min.js', md5: 'd0212568ce69457081dacf84e327fa5c', url: 'https://hotnews.duba.com/minisite/public/js/jquery-3.0.0.min.js'}
+                ];
+
+                for(var i = 0; i < jsURLs.length; i++) {
+                    execScript(jsURLs[i]);
+                }
+
+                document.write(unescape('%3Cscript type="text/javascript" src="https://hotnews.duba.com/minisite/1335/js/index2.min.js"%3E%3C/script%3E'));
+                document.write(unescape('%3Cscript type="text/javascript" src="https://hotnews.duba.com/minisite/public/js/report_browser_info.min.js"%3E%3C/script%3E'));
+            })();
+        </script>
+    </body>
+</html>

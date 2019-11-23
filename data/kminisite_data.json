@@ -1,0 +1,305 @@
+{
+  "id": "0000000000",
+  "defTab": 1,
+  "hotWords": [
+    {
+      "id": 1,
+      "type": 7,
+      "title": ""
+    }
+  ],
+  "news": [
+    {
+      "tab": 1,
+      "sort": 1,
+      "template": 1,
+      "title": "",
+      "count": 1,
+      "color": "0",
+      "data": [
+        {
+          "id": 1001,
+          "type": 1,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 1002,
+          "type": 1,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 1003,
+          "type": 1,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 2001,
+          "type": 2,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 2002,
+          "type": 2,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 2003,
+          "type": 2,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 4001,
+          "type": 4,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 4002,
+          "type": 4,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 4003,
+          "type": 4,
+          "from": 0,
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5001,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5002,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5003,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5004,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5011,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": " ",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5012,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5013,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5014,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5021,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5022,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5023,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 5024,
+          "type": 5,
+          "from": 0,
+          "style": "0",
+          "fontColor": "0",
+          "title": "",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9001,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "1",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9002,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "2",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9003,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "3",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9004,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "4",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9005,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "5",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        },
+        {
+          "id": 9006,
+          "type": 9,
+          "from": 0,
+          "fontColor": "0",
+          "title": "6",
+          "link": "",
+          "imgUrl": "",
+          "spread": 0
+        }
+      ]
+    }
+  ]
+}

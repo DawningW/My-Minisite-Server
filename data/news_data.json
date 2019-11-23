@@ -1,0 +1,69 @@
+{
+  "keywords": [ "" ],
+  "news": [
+    {
+      "type": "index",
+      "title": "",
+      "content": {
+        "slider": [
+          {
+            "title": "需要三个",
+            "link": "",
+            "image": ""
+          }
+        ],
+        "videos": [
+          {
+            "title": "需要三个",
+            "link": "",
+            "image": ""
+          }
+        ],
+        "sidebig": [
+          {
+            "title": "需要三个",
+            "link": ""
+          }
+        ],
+        "sidesmall": [
+          {
+            "title": "十二个",
+            "link": ""
+          }
+        ],
+        "images": [
+          {
+            "title": "1",
+            "link": "",
+            "image": ""
+          },
+          {
+            "title": "2",
+            "link": "",
+            "image": ""
+          },
+          {
+            "title": "3",
+            "link": "",
+            "image": ""
+          },
+          {
+            "title": "4",
+            "link": "",
+            "image": ""
+          },
+          {
+            "title": "5",
+            "link": "",
+            "image": ""
+          },
+          {
+            "title": "6",
+            "link": "",
+            "image": ""
+          }
+        ]
+      }
+    }
+  ]
+}
