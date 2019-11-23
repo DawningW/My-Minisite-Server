@@ -46,7 +46,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             f = open("./data/" + paths[1], "rb")
             content = f.read()
-            if path[1].endsWith():
+            if paths[1].endswith(".md"):
                 content = md2html(content)
             self.wfile.write(content.encode("utf-8"))
             f.close()
