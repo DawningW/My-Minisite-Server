@@ -35,7 +35,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         "HTTP GET"
         paths = self.path[1:].split("/")
-        if paths[0] == "minisite":
+        if paths[0] == "kingsoft":
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
@@ -76,8 +76,8 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         return
 
-mdexts = ['markdown.extensions.extra', 'markdown.extensions.codehilite', 'markdown.extensions.tables', 'markdown.extensions.toc']
+mdexts = ['markdown.extensions.extra', 'markdown.extensions.tables', 'markdown.extensions.toc']
 def md2html(mdcontent):
     html = markdown.markdown(mdcontent, extensions = mdexts)
-    content = Markup(html)
+    content = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n' + html
     return content

@@ -20,7 +20,7 @@ class myproxy:
                     ctx.log.info("发现用户毒霸热点访问,进行重定向")
                     flow.request.host = "127.0.0.1"
                     flow.request.port = 80
-                    flow.request.path = "/minisite"
+                    flow.request.path = "/kingsoft"
 
 def getKey(list, key) -> str:
     for value in list:

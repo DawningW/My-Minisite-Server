@@ -162,8 +162,8 @@ def processcommand(name, args):
         reload()
     elif name == "help" or name == "?":
         print("There is no help now.")
-    elif name == "exit" or name == "quit" or name == "close":
-        exit(0)
+    elif name == "stop" or name == "exit" or name == "quit" or name == "close":
+        sys.exit(0)
     else:
         print("Unknown command. Type \"help\" for more helps.")
     return
