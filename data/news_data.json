@@ -1,5 +1,8 @@
 {
   "keywords": [ "" ],
+  "inherit": {
+    "kingsoft" : [ "" ]
+  },
   "news": [
     {
       "type": "index",

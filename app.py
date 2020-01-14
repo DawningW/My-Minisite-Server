@@ -11,6 +11,7 @@ import logging
 import re
 import json
 import requests
+import webbrowser
 
 from systrayicon import SysTrayIcon
 import msserver
@@ -35,7 +36,7 @@ originaldata = {}
 # 热点新闻网页模板
 minisitetemplates = {}
 # 热点新闻服务器地址
-minisitehosts = {"kingsoft": "hotnews.duba.com"}
+minisitehosts = {"localhost": "127.0.0.1:81", "kingsoft": "hotnews.duba.com"}
 # 热点新闻数据
 minisitedata = {}
 # 生成的热点新闻数据
@@ -55,15 +56,8 @@ def main():
     global session
     session = requests.Session()
     session.headers.update(headers)
-    # 读取我的新闻数据
-    logging.info("Reading local news JSON.")
-    with open("./data/news_data.json", encoding = "utf-8") as f:
-        global originaldata
-        originaldata = json.load(f)
-    # 读取热点新闻网页模板
-    logging.info("Reading local website template.")
-    with open("./data/kminisite_template.html", encoding = "utf-8") as f:
-        minisitetemplates["kingsoft"] = f.read()
+    # 读取本地新闻数据及网页模板
+    readlocaldata()
     # 获取热点新闻数据
     logging.info("Getting minisites' news JSON.")
     getminisitedata()
@@ -75,7 +69,7 @@ def main():
     generatetemplate()
     # 启动服务器
     global serverthread
-    serverthread = threading.Thread(target = msserver.run, daemon = False, kwargs = {"sites": generatedsites})
+    serverthread = threading.Thread(target = msserver.run, daemon = False, args = (generatedsites, ))
     serverthread.start()
     # 接受用户输入
     while True:
@@ -85,15 +79,27 @@ def main():
             processcommand(strs[0], strs[1:])
     return
 
+def readlocaldata():
+    # 我的新闻数据
+    logging.info("Reading local news JSON.")
+    with open("./data/news_data.json", encoding = "utf-8") as f:
+        global originaldata
+        originaldata = json.load(f)
+    # 热点新闻网页模板
+    logging.info("Reading local website template.")
+    with open("./data/kminisite_template.html", encoding = "utf-8") as f:
+        minisitetemplates["kingsoft"] = f.read()
+    return
+
 def getminisitedata():
     for (key, value) in minisitehosts.items():
         if key == "kingsoft":
-            # logging.info("Connecting to kingsoft minisite server to get news JSON.")
-            r = session.get("http://" + value + "/minisite/1339")
+            logging.info("Connecting to kingsoft minisite server to get news JSON.")
+            r = session.get("http://" + value + "/minisite/1335/")
             r.encoding = "UTF-8"
             s = r.text
             s = re.search(pattern, s).group(1)
-            s = s.replace("\"/uploadImg", "\"http://hotnews.duba.com/uploadImg")
+            s = s.replace("\"/uploadImg", "\"http://" + value + "/uploadImg")
             minisitedata[key] = json.loads(s)
     return
 
@@ -107,14 +113,15 @@ def generatedata():
             for word in originaldata["keywords"]:
                 hotwords.append({"id": 1, "type": 7, "title": word})
             # 生成新闻
+            news = []
+
             count = len(originaldata["news"])
-            news = generateddata[key]["news"]
-            for tab in news:
-                tab["tab"] += count
-                tab["sort"] += count
             for index in range(0, count):# [0, count)
                 item = originaldata["news"][index]
                 style = 1
+                if item["type"] == "page": style = 5
+                elif item["type"] == "list": style = 17
+                elif item["type"] == "video": style = 11
                 tab = {"tab": index + 1, "sort": index + 1, "template": style, "title": item["title"], "count": 1, "color": "0", "data": []}
                 for (pos, content) in item["content"].items():
                     if pos == "slider":
@@ -146,6 +153,19 @@ def generatedata():
                         pass
                 tab["count"] = len(tab["data"])
                 news.append(tab)
+
+            inherittabs = []
+            if key in originaldata["inherit"]: 
+                inherittabs = originaldata["inherit"][key]
+            for item in generateddata[key]["news"]:
+                if item["title"] in inherittabs:
+                    count += 1
+                    tab = copy.deepcopy(item)
+                    tab["tab"] = count
+                    tab["sort"] = count
+                    news.append(tab)
+
+            generateddata[key]["news"] = news
     return
 
 def generatetemplate():
@@ -154,22 +174,30 @@ def generatetemplate():
         generatedsites[key] = value.replace("{$data}", s)
     return
 
+def getgeneratedsites():
+    return generatedsites
+
 def processcommand(name, args):
     "命令输入处理"
     if name == "view":
         print(generateddata["kingsoft"])
+    elif name == "open":
+        webbrowser.open("http://" + minisitehosts["localhost"] + "/kingsoft/default")
     elif name == "reload":
         reload()
     elif name == "help" or name == "?":
-        print("There is no help now.")
+        print("view/open/reload/help/stop")
     elif name == "stop" or name == "exit" or name == "quit" or name == "close":
         sys.exit(0)
     else:
-        print("Unknown command. Type \"help\" for more helps.")
+        print("Unknown command. Type \"help\" or \"?\" for more helps.")
     return
 
 def reload():
-    print("We have no reload function now!")
+    readlocaldata()
+    generatedata()
+    generatetemplate()
+    print("Reload successfully!")
     return
 
 def runtray():

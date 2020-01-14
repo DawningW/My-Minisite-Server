@@ -50,11 +50,11 @@ class MainWindow(QMainWindow):
         self.webview.setControl("{8856F961-340A-11D0-A96B-00C04FD705A2}")
         self.webview.setProperty("DisplayAlerts", False)
         self.webview.setProperty("DisplayScrollBars", True)
-        self.webview.dynamicCall("Navigate(const QString&)", "http://127.0.0.1:80/kingsoft/default")
+        self.webview.dynamicCall("Navigate(const QString&)", "http://127.0.0.1:81/kingsoft/default")
         self.vlayout.addWidget(self.webview)
 
         #self.webview = QWebEngineView(self)
-        #self.webview.load(QUrl("https://hotnews.duba.com/minisite/1339/"))
+        #self.webview.load(QUrl("https://hotnews.duba.com/minisite/1335/"))
         #self.webview.show()
         #self.vlayout.addWidget(self.webview)
 
