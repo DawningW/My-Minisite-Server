@@ -34,6 +34,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="client-pyqt\client.py" />
+    <Compile Include="fileob.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="mitmaddon.py">
       <SubType>Code</SubType>
     </Compile>

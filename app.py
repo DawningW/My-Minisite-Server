@@ -7,13 +7,16 @@ import sys
 import copy
 import threading
 import atexit
-import logging
 import re
+import logging
+import configparser
 import json
 import requests
 import webbrowser
+from watchdog.observers import Observer
 
 from systrayicon import SysTrayIcon
+from fileob import FileEventHandler
 import msserver
 
 # Hosts文件地址(未使用)
@@ -31,12 +34,14 @@ session = None
 traythread = None
 serverthread = None
 
+observer = None
+
 # 我的新闻数据
 originaldata = {}
 # 热点新闻网页模板
 minisitetemplates = {}
 # 热点新闻服务器地址
-minisitehosts = {"localhost": "127.0.0.1:81", "kingsoft": "hotnews.duba.com"}
+minisitehosts = {"kingsoft": "hotnews.duba.com"}
 # 热点新闻数据
 minisitedata = {}
 # 生成的热点新闻数据
@@ -47,6 +52,19 @@ generatedsites = {}
 def main():
     # 设置日志
     logging.basicConfig(filename = "./latest.log", filemode = "w", level = logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler())
+    # 读配置文件
+    config = configparser.ConfigParser()
+    if not os.path.exists("./settings.ini"):
+        config.set("DEFAULT", "ip", "127.0.0.1")
+        config.set("DEFAULT", "port", 80)
+        with open("./settings.ini", "w") as configfile:
+            config.write(configfile)
+    else:
+        config.read("./settings.ini")
+    address = config.get("DEFAULT", "ip")
+    port = config.getint("DEFAULT", "port")
+    minisitehosts["localhost"] = address + ":" + str(port)
     # 启动系统托盘线程
     global traythread
     traythread = threading.Thread(target = runtray, daemon = False)
@@ -69,8 +87,13 @@ def main():
     generatetemplate()
     # 启动服务器
     global serverthread
-    serverthread = threading.Thread(target = msserver.run, daemon = False, args = (generatedsites, ))
+    serverthread = threading.Thread(target = msserver.run, daemon = False, args = (address, port, generatedsites, ))
     serverthread.start()
+    # 自动重载数据
+    global observer
+    observer = Observer()
+    observer.schedule(FileEventHandler(reload), "./data")
+    observer.start()
     # 接受用户输入
     while True:
         line = input(">> ").strip()
@@ -85,9 +108,12 @@ def readlocaldata():
     with open("./data/news_data.json", encoding = "utf-8") as f:
         global originaldata
         originaldata = json.load(f)
+    # 我的新闻模板
+    logging.info("Reading local website templates.")
+    with open("./data/news_template.html", encoding = "utf-8") as f:
+        generatedsites["local"] = f.read()
     # 热点新闻网页模板
-    logging.info("Reading local website template.")
-    with open("./data/kminisite_template.html", encoding = "utf-8") as f:
+    with open("./data/kingsoft_template.html", encoding = "utf-8") as f:
         minisitetemplates["kingsoft"] = f.read()
     return
 
@@ -226,6 +252,8 @@ def ontrayclicked():
 @atexit.register
 def onexit():
     "退出程序"
+    observer.stop()
+    observer.join()
     logging.info("Shut down my minisite server. Thanks for your using.")
     return
 

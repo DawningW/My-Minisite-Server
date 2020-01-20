@@ -9,16 +9,15 @@ import imghdr
 import filetype
 from http.server import HTTPStatus, HTTPServer, BaseHTTPRequestHandler
 
-address = "127.0.0.1"
-port = 81
+sites = {}
 server = None
 
-sites = {}
-
 def run(*args, **kwargs):
+    address = args[0]
+    port = args[1]
     logging.info("Starting server at a new thread, listening at: %s" % port)
     global sites, server
-    sites = args[0]
+    sites = args[2]
     server = HTTPServer((address, port), RequestHandler)
     logging.info("Server is running now.")
     server.serve_forever()
@@ -44,10 +43,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
-            f = open("./data/" + paths[1], "rb")
+            f = open("./data/" + paths[1], "r", encoding="utf-8")
             content = f.read()
             if paths[1].endswith(".md"):
                 content = md2html(content)
+            content = wraphtml(content)
             self.wfile.write(content.encode("utf-8"))
             f.close()
         elif paths[0] == "images" and os.path.isfile("./data/" + paths[1]):
@@ -79,5 +79,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 mdexts = ['markdown.extensions.extra', 'markdown.extensions.tables', 'markdown.extensions.toc']
 def md2html(mdcontent):
     html = markdown.markdown(mdcontent, extensions = mdexts)
-    content = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n' + html
-    return content
+    return html
+
+def wraphtml(content):
+    return sites["local"].replace("{$content}", content)
