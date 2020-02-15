@@ -33,7 +33,6 @@ session = None
 # 其他线程
 traythread = None
 serverthread = None
-
 observer = None
 
 # 我的新闻数据
@@ -106,8 +105,10 @@ def readlocaldata():
     # 我的新闻数据
     logging.info("Reading local news JSON.")
     with open("./data/news_data.json", encoding = "utf-8") as f:
+        s = f.read()
+        s = s.replace("{$localhost}", minisitehosts["localhost"])
         global originaldata
-        originaldata = json.load(f)
+        originaldata = json.loads(s)
     # 我的新闻模板
     logging.info("Reading local website templates.")
     with open("./data/news_template.html", encoding = "utf-8") as f:
@@ -159,6 +160,12 @@ def generatedata():
                         id = 2001
                         for entry in content:
                             tab["data"].append({"id": id, "type": 2, "from": 0, "fontColor": "0","title": entry["title"], "link": entry["link"], "imgUrl": entry["image"], "spread": 0})
+                            id += 1
+                    elif pos == "videos2":
+                        # 当template=11时(video)有3个type=21的条目(右侧3个视频)
+                        id = 2010
+                        for entry in content:
+                            tab["data"].append({"id": id, "type": 21, "from": 0, "fontColor": "0","title": entry["title"], "link": entry["link"], "imgUrl": entry["image"], "spread": 0})
                             id += 1
                     elif pos == "sidebig":
                         id = 4001
