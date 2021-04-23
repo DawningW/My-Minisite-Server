@@ -1,150 +1,147 @@
 # coding=utf-8
 
-# 导入
-import ctypes
 import os
 import sys
 import copy
 import threading
-import atexit
 import re
 import logging
 import configparser
 import json
 import requests
 import webbrowser
+from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-
-from systrayicon import SysTrayIcon
-from fileob import FileEventHandler
 import msserver
 
-# Hosts文件地址(未使用)
-# hostspath = os.getenv("SYSTEMROOT") + "\System32\drivers\etc\hosts"
-
 # 正则表达式
-pattern = re.compile("(?<=json \= )(.*)(?= \|\| null;)", re.M)
+pattern = re.compile(r"(?<=json \= )(.*)(?= \|\| null;)", re.M)
 # (?<=json \= )(?:.|\s)*(?= \|\| null;)
 
 # 我的请求头
 headers = {"User-Agent": "MyMinisiteServer/1.0"}
 session = None
 
-# 其他线程
-traythread = None
-serverthread = None
+# HTTP服务器
+serverThread = None
+# 文件监控
 observer = None
 
 # 我的新闻数据
-originaldata = {}
-# 热点新闻网页模板
-minisitetemplates = {}
+originalData = {}
 # 热点新闻服务器地址
-minisitehosts = {"kingsoft": "hotnews.duba.com"}
+minisiteHosts = {"kingsoft": "http://hotnews.duba.com"}
+# 热点新闻网页模板
+minisiteTemplates = {}
 # 热点新闻数据
-minisitedata = {}
+minisiteData = {}
 # 生成的热点新闻数据
-generateddata = {}
-# 生成的热点新闻主页模板
-generatedsites = {}
+generatedData = {}
+# 生成的热点新闻主页
+generatedSites = {}
 
-def main():
-    # 设置日志
-    logging.basicConfig(filename = "./latest.log", filemode = "w", level = logging.INFO)
-    logging.getLogger().addHandler(logging.StreamHandler())
-    # 读配置文件
+def run():
+    # 读取配置文件
     config = configparser.ConfigParser()
     if not os.path.exists("./settings.ini"):
+        logging.info("Can't find settings. Creating settings.ini.")
         config.set("DEFAULT", "ip", "127.0.0.1")
         config.set("DEFAULT", "port", 80)
-        with open("./settings.ini", "w") as configfile:
-            config.write(configfile)
+        config.set("DEFAULT", "host", "http://yourserver.com")
+        with open("./settings.ini", "w") as configFile:
+            config.write(configFile)
     else:
         config.read("./settings.ini")
     address = config.get("DEFAULT", "ip")
     port = config.getint("DEFAULT", "port")
-    minisitehosts["localhost"] = address + ":" + str(port)
-    # 启动系统托盘线程
-    global traythread
-    traythread = threading.Thread(target = runtray, daemon = False)
-    traythread.start()
-    logging.info("Welcome to my minisite server. Author: wc")
+    minisiteHosts["localhost"] = config.get("DEFAULT", "host")
     # 初始化会话
     global session
     session = requests.Session()
     session.headers.update(headers)
-    # 读取本地新闻数据及网页模板
-    readlocaldata()
-    # 获取热点新闻数据
-    logging.info("Getting minisites' news JSON.")
-    getminisitedata()
-    # 生成热点新闻数据
+    # 读取本地热点新闻模板和数据
+    logging.info("Loading custom templates and news data.")
+    readLocalData()
+    # 爬取热点新闻网页和数据
+    logging.info("Getting minisites' templates and news data.")
+    getMinisiteData()
+    # 生成新的热点新闻数据
     logging.info("Generating new minisite news data.")
-    generatedata()
-    # 生成热点新闻网页
+    generateData()
+    # 生成新的热点新闻网页
     logging.info("Generating new minisite webpages.")
-    generatetemplate()
+    generateSites()
     # 启动服务器
-    global serverthread
-    serverthread = threading.Thread(target = msserver.run, daemon = False, args = (address, port, generatedsites, ))
-    serverthread.start()
+    global serverThread
+    serverThread = threading.Thread(target = msserver.run, daemon = True, args = (address, port, generatedSites))
+    serverThread.start()
     # 自动重载数据
     global observer
     observer = Observer()
-    observer.schedule(FileEventHandler(reload), "./data")
+    observer.schedule(MyFileEventHandler(), "./data")
     observer.start()
     # 接受用户输入
     while True:
         line = input(">> ").strip()
         strs = line.split()
         if (len(strs) >= 1):
-            processcommand(strs[0], strs[1:])
+            processCommand(strs[0], strs[1:])
     return
 
-def readlocaldata():
-    # 我的新闻数据
-    logging.info("Reading local news JSON.")
+def readLocalData():
+    "从本地读取自定义热点新闻网页模板和数据"
+    with open("./data/news_template.html", encoding = "utf-8") as f:
+        minisiteTemplates["localhost"] = f.read()
     with open("./data/news_data.json", encoding = "utf-8") as f:
         s = f.read()
-        s = s.replace("{$localhost}", minisitehosts["localhost"])
-        global originaldata
-        originaldata = json.loads(s)
-    # 我的新闻模板
-    logging.info("Reading local website templates.")
-    with open("./data/news_template.html", encoding = "utf-8") as f:
-        generatedsites["local"] = f.read()
-    # 热点新闻网页模板
-    with open("./data/kingsoft_template.html", encoding = "utf-8") as f:
-        minisitetemplates["kingsoft"] = f.read()
+        s = s.replace("{$localhost}", minisiteHosts["localhost"])
+        global originalData
+        originalData = json.loads(s)
+    with open("./data/detail_template.html", encoding = "utf-8") as f:
+        generatedSites["content"] = f.read()
     return
 
-def getminisitedata():
-    for (key, value) in minisitehosts.items():
+def getMinisiteData():
+    "从各热点新闻服务器爬取网页和数据"
+    for (key, value) in minisiteHosts.items():
         if key == "kingsoft":
-            logging.info("Connecting to kingsoft minisite server to get news JSON.")
-            r = session.get("http://" + value + "/minisite/1335/")
-            r.encoding = "UTF-8"
-            s = r.text
-            s = re.search(pattern, s).group(1)
-            s = s.replace("\"/uploadImg", "\"http://" + value + "/uploadImg")
-            minisitedata[key] = json.loads(s)
+            logging.info("Connecting to kingsoft minisite server to get news webpage.")
+            try:
+                r = session.get(value + "/minisite/1335/")
+                r.encoding = "UTF-8-sig" # 为啥金山的新闻是UTF-8带BOM的呢???
+                # m = re.search(pattern, r.text)
+                def repl(m):
+                    s = m.group(1).replace("\"/uploadImg", "\"" + value + "/uploadImg")
+                    minisiteData[key] = json.loads(s)
+                    return "{$data}"
+                s = re.sub(pattern, repl, r.text)
+                s = s.replace("/minisite", value + "/minisite")
+                minisiteTemplates[key] = s
+            except requests.exceptions.RequestException as e:
+                logging.error("An error has occurred when getting webpage: %s", e)
+                logging.info("Load alternate data from local.")
+                with open("./data/kingsoft_template.html", encoding = "utf-8") as f:
+                    minisiteTemplates[key] = json.loads(f.read())
+                with open("./data/kingsoft_data.json", encoding = "utf-8") as f:
+                    minisiteData[key] = f.read()
     return
 
-def generatedata():
-    for (key, value) in minisitedata.items():
+def generateData():
+    "为各热点新闻重新生成新数据"
+    for (key, value) in minisiteData.items():
         if key == "kingsoft":
-            generateddata[key] = copy.deepcopy(value)
+            generatedData[key] = copy.deepcopy(value)
             # 生成热点词
-            hotwords = generateddata[key]["hotWords"]
+            hotwords = generatedData[key]["hotWords"]
             hotwords.clear()
-            for word in originaldata["keywords"]:
+            for word in originalData["keywords"]:
                 hotwords.append({"id": 1, "type": 7, "title": word})
             # 生成新闻
             news = []
 
-            count = len(originaldata["news"])
-            for index in range(0, count):# [0, count)
-                item = originaldata["news"][index]
+            count = len(originalData["news"])
+            for index in range(0, count): # [0, count)
+                item = originalData["news"][index]
                 style = 1
                 if item["type"] == "page": style = 5
                 elif item["type"] == "list": style = 17
@@ -187,82 +184,94 @@ def generatedata():
                 tab["count"] = len(tab["data"])
                 news.append(tab)
 
-            inherittabs = []
-            if key in originaldata["inherit"]: 
-                inherittabs = originaldata["inherit"][key]
-            for item in generateddata[key]["news"]:
-                if item["title"] in inherittabs:
+            inheritTabs = []
+            if key in originalData["inherit"]: 
+                inheritTabs = originalData["inherit"][key]
+            for item in generatedData[key]["news"]:
+                if item["title"] in inheritTabs:
                     count += 1
                     tab = copy.deepcopy(item)
                     tab["tab"] = count
                     tab["sort"] = count
                     news.append(tab)
 
-            generateddata[key]["news"] = news
+            generatedData[key]["news"] = news
     return
 
-def generatetemplate():
-    for (key, value) in minisitetemplates.items():
-        s = json.dumps(generateddata[key])
-        generatedsites[key] = value.replace("{$data}", s)
+def generateSites():
+    "为各热点新闻重新生成新页面"
+    for (key, value) in minisiteTemplates.items():
+        s = None
+        if key == "localhost":
+            s = json.dumps(originalData)
+        else:
+            s = json.dumps(generatedData[key])
+        generatedSites[key] = value.replace("{$data}", s)
     return
 
-def getgeneratedsites():
-    return generatedsites
+def reload(download = False):
+    "重载"
+    readLocalData()
+    if download:
+        getMinisiteData()
+    generateData()
+    generateSites()
+    print("Reload successfully!")
+    return
 
-def processcommand(name, args):
-    "命令输入处理"
+def close():
+    "关闭"
+    session.close()
+    observer.stop()
+    observer.join()
+    return
+
+def processCommand(name, args):
+    "解析命令输入"
     if name == "view":
-        print(generateddata["kingsoft"])
+        print(generatedData["kingsoft"])
     elif name == "open":
-        webbrowser.open("http://" + minisitehosts["localhost"] + "/kingsoft/default")
+        webbrowser.open(minisiteHosts["localhost"] + "/kingsoft/default")
     elif name == "reload":
         reload()
     elif name == "help" or name == "?":
-        print("view/open/reload/help/stop")
+        print("----- Command Help -----")
+        print("view - 查看生成的热点新闻数据")
+        print("open - 在浏览器中打开我的热点新闻网页")
+        print("reload - 重新加载热点新闻数据")
+        print("help - 显示此命令帮助")
+        print("stop - 退出我的热点新闻服务器")
     elif name == "stop" or name == "exit" or name == "quit" or name == "close":
         sys.exit(0)
     else:
         print("Unknown command. Type \"help\" or \"?\" for more helps.")
     return
 
-def reload():
-    readlocaldata()
-    generatedata()
-    generatetemplate()
-    print("Reload successfully!")
-    return
+class MyFileEventHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
 
-def runtray():
-    "系统托盘线程"
-    logging.info("Start a new thread which manage system tray.")
-    global show, tray
-    show = True
-    tray = SysTrayIcon("./icon.ico", "我的热点新闻服务器", ontrayclicked)
-    ontrayclicked()
-    tray.loop()
-    return
-
-def ontrayclicked():
-    "托盘被点击"
-    global show
-    whnd = ctypes.windll.kernel32.GetConsoleWindow()
-    if whnd != 0:
-        if show:
-            ctypes.windll.user32.ShowWindow(whnd, 0)
+    def on_moved(self, event):
+        if event.is_directory:
+            print("directory moved from {0} to {1}".format(event.src_path, event.dest_path))
         else:
-            ctypes.windll.user32.ShowWindow(whnd, 1)
-        show = not show
-        ctypes.windll.kernel32.CloseHandle(whnd)
-    return
+            print("file moved from {0} to {1}".format(event.src_path, event.dest_path))
 
-@atexit.register
-def onexit():
-    "退出程序"
-    observer.stop()
-    observer.join()
-    logging.info("Shut down my minisite server. Thanks for your using.")
-    return
+    def on_created(self, event):
+        if event.is_directory:
+            print("directory created: {0}".format(event.src_path))
+        else:
+            print("file created: {0}".format(event.src_path))
 
-if __name__ == "__main__":
-    main()
+    def on_deleted(self, event):
+        if event.is_directory:
+            print("directory deleted: {0}".format(event.src_path))
+        else:
+            print("file deleted: {0}".format(event.src_path))
+
+    def on_modified(self, event):
+        if event.is_directory:
+            print("directory modified: {0}".format(event.src_path))
+        else:
+            print("file modified: {0}".format(event.src_path))
+            if "news_data.json" in event.src_path: reload()

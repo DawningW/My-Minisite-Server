@@ -1,24 +1,31 @@
+#!/usr/bin/env python
 # coding=utf-8
 
-import ctypes
 import sys
+import atexit
+import logging
 
-from app import main
+from systray import initTray, removeTray
+import app
 
-def isadmin():
-    "检查管理员权限"
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
+@atexit.register
+def onexit():
+    "退出程序"
+    removeTray()
+    app.close()
+    logging.info("Shut down my minisite server. Thanks for your using.")
+    return
 
-# 主程序
+# 程序入口
 if __name__ == "__main__":
-    # 检查权限
-    if isadmin():
-        main()
-    else:
-        if len(sys.argv) >= 2 and sys.argv[1] == "debug":
-            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__ + " debug", None, 1)
-        else:
-            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, "", None, 1)
+    try:
+        # 配置日志
+        logging.basicConfig(filename = "./latest.log", filemode = "w", level = logging.INFO)
+        logging.getLogger().addHandler(logging.StreamHandler())
+        logging.info("Welcome to my minisite server. Author: wc.")
+        # 初始化系统托盘
+        initTray()
+        # 运行应用
+        app.run()
+    except KeyboardInterrupt:
+        sys.exit(0)
