@@ -3,7 +3,6 @@
 import os
 import sys
 import copy
-import threading
 import re
 import logging
 import configparser
@@ -12,7 +11,7 @@ import requests
 import webbrowser
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-import msserver
+from msserver import ThreadingHTTPServer
 
 # 正则表达式
 pattern = re.compile(r"(?<=json \= )(.*)(?= \|\| null;)", re.M)
@@ -23,7 +22,7 @@ headers = {"User-Agent": "MyMinisiteServer/1.0"}
 session = None
 
 # HTTP服务器
-serverThread = None
+server = None
 # 文件监控
 observer = None
 
@@ -72,9 +71,9 @@ def run():
     logging.info("Generating new minisite webpages.")
     generateSites()
     # 启动服务器
-    global serverThread
-    serverThread = threading.Thread(target = msserver.run, daemon = True, args = (address, port, generatedSites))
-    serverThread.start()
+    global server
+    server = ThreadingHTTPServer(address, port, (generatedSites))
+    server.start()
     # 自动重载数据
     global observer
     observer = Observer()
@@ -224,6 +223,7 @@ def close():
     session.close()
     observer.stop()
     observer.join()
+    server.stop()
     return
 
 def processCommand(name, args):
