@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf-8
 
 import sys
 import atexit
 import logging
 
-from systray import initTray, removeTray
+from systraymgr import initTray, removeTray
 import app
 
 @atexit.register

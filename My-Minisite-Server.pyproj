@@ -44,7 +44,7 @@
     <Compile Include="proxy.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="systray.py">
+    <Compile Include="systraymgr.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SysTrayIcon.py">

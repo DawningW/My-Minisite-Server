@@ -40,13 +40,15 @@ generatedData = {}
 generatedSites = {}
 
 def run():
-    # 读取配置文件
+    # 读取配置文件 TODO 重写配置文件读取
     config = configparser.ConfigParser()
     if not os.path.exists("./settings.ini"):
         logging.info("Can't find settings. Creating settings.ini.")
         config.set("DEFAULT", "ip", "127.0.0.1")
-        config.set("DEFAULT", "port", 80)
+        config.set("DEFAULT", "port", "80")
         config.set("DEFAULT", "host", "http://yourserver.com")
+        config.set("DEFAULT", "silent", "false")
+        config.set("DEFAULT", "allow_webspiders", "false")
         with open("./settings.ini", "w") as configFile:
             config.write(configFile)
     else:
@@ -54,6 +56,10 @@ def run():
     address = config.get("DEFAULT", "ip")
     port = config.getint("DEFAULT", "port")
     minisiteHosts["localhost"] = config.get("DEFAULT", "host")
+    if config.getboolean("DEFAULT", "silent"):
+        from systraymgr import onTrayClicked
+        onTrayClicked()
+    robotstxt = not config.getboolean("DEFAULT", "allow_webspiders")
     # 初始化会话
     global session
     session = requests.Session()
@@ -72,7 +78,7 @@ def run():
     generateSites()
     # 启动服务器
     global server
-    server = ThreadingHTTPServer(address, port, (generatedSites))
+    server = ThreadingHTTPServer(address, port, generatedSites, robotstxt)
     server.start()
     # 自动重载数据
     global observer
