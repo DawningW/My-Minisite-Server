@@ -34,8 +34,7 @@ class ThreadingHTTPServer(Thread, ThreadingMixIn, HTTPServer):
 
     def run(self):
         global sites, enable_robotstxt
-        sites = self._args[0]
-        enable_robotstxt = self._args[1]
+        sites, enable_robotstxt = self._args
         logging.info("Server is running now.")
         self.serve_forever()
         return
@@ -47,6 +46,18 @@ class ThreadingHTTPServer(Thread, ThreadingMixIn, HTTPServer):
 
 class RequestHandler(BaseHTTPRequestHandler):
     "HTTP请求处理类"
+
+    def log_message(self, format, *args):
+        print("\r[%s] %s %s" %
+                         (self.log_date_time_string(),
+                          self.address_string(),
+                          format % args))
+        print(">> ", end = '', flush = True)
+        return
+
+    def address_string(self):
+        real_ip = self.headers.get("X-Forwarded-For", self.client_address[0])
+        return real_ip
 
     def handle_one_request(self):
         if not self.wfile.closed:
@@ -63,8 +74,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         "HTTP GET"
-        real_ip = self.headers.get("X-Forwarded-For", "undefined")
-        print("Request from real IP: {}".format(real_ip), flush = True) # TODO 测试
         try:
             path, sep, arg = self.path.partition("?")
             paths = path[1:].split("/")
@@ -102,7 +111,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.send_response(HTTPStatus.NOT_FOUND)
                 self.end_headers()
         except ConnectionError as e:
-            logging.error("Error: [%d] %s.", e.errno, e.strerror)
+            self.log_error("Error: [%d] %s", e.errno, e.strerror)
             pass
         return
 

@@ -5,13 +5,13 @@ import sys
 import atexit
 import logging
 
-from systraymgr import initTray, removeTray
+import systraymgr
 import app
 
 @atexit.register
 def onexit():
     "退出程序"
-    removeTray()
+    systraymgr.removeTray()
     app.close()
     logging.info("Shut down my minisite server. Thanks for your using.")
     return
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         logging.getLogger().addHandler(logging.StreamHandler())
         logging.info("Welcome to my minisite server. Author: wc.")
         # 初始化系统托盘
-        initTray()
+        systraymgr.initTray()
         # 运行应用
         app.run()
     except KeyboardInterrupt:

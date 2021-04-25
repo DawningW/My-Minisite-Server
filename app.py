@@ -26,8 +26,6 @@ server = None
 # 文件监控
 observer = None
 
-# 我的新闻数据
-originalData = {}
 # 热点新闻服务器地址
 minisiteHosts = {"kingsoft": "http://hotnews.duba.com"}
 # 热点新闻网页模板
@@ -40,7 +38,7 @@ generatedData = {}
 generatedSites = {}
 
 def run():
-    # 读取配置文件 TODO 重写配置文件读取
+    # 读取配置文件
     config = configparser.ConfigParser()
     if not os.path.exists("./settings.ini"):
         logging.info("Can't find settings. Creating settings.ini.")
@@ -55,7 +53,7 @@ def run():
         config.read("./settings.ini")
     address = config.get("DEFAULT", "ip")
     port = config.getint("DEFAULT", "port")
-    minisiteHosts["localhost"] = config.get("DEFAULT", "host")
+    minisiteHosts["minisite"] = config.get("DEFAULT", "host")
     if config.getboolean("DEFAULT", "silent"):
         from systraymgr import onTrayClicked
         onTrayClicked()
@@ -96,12 +94,11 @@ def run():
 def readLocalData():
     "从本地读取自定义热点新闻网页模板和数据"
     with open("./data/news_template.html", encoding = "utf-8") as f:
-        minisiteTemplates["localhost"] = f.read()
+        minisiteTemplates["minisite"] = f.read()
     with open("./data/news_data.json", encoding = "utf-8") as f:
         s = f.read()
-        s = s.replace("{$localhost}", minisiteHosts["localhost"])
-        global originalData
-        originalData = json.loads(s)
+        s = s.replace("{$localhost}", minisiteHosts["minisite"])
+        minisiteData["minisite"] = json.loads(s)
     with open("./data/detail_template.html", encoding = "utf-8") as f:
         generatedSites["content"] = f.read()
     return
@@ -133,17 +130,17 @@ def getMinisiteData():
 
 def generateData():
     "为各热点新闻重新生成新数据"
+    originalData = minisiteData["minisite"]
     for (key, value) in minisiteData.items():
         if key == "kingsoft":
             generatedData[key] = copy.deepcopy(value)
             # 生成热点词
-            hotwords = generatedData[key]["hotWords"]
-            hotwords.clear()
+            hotWords = generatedData[key]["hotWords"]
+            hotWords.clear()
             for word in originalData["keywords"]:
-                hotwords.append({"id": 1, "type": 7, "title": word})
+                hotWords.append({"id": 1, "type": 7, "title": word})
             # 生成新闻
             news = []
-
             count = len(originalData["news"])
             for index in range(0, count): # [0, count)
                 item = originalData["news"][index]
@@ -165,7 +162,7 @@ def generateData():
                             id += 1
                     elif pos == "videos2":
                         # 当template=11时(video)有3个type=21的条目(右侧3个视频)
-                        id = 2010
+                        id = 2101
                         for entry in content:
                             tab["data"].append({"id": id, "type": 21, "from": 0, "fontColor": "0","title": entry["title"], "link": entry["link"], "imgUrl": entry["image"], "spread": 0})
                             id += 1
@@ -188,10 +185,7 @@ def generateData():
                         pass
                 tab["count"] = len(tab["data"])
                 news.append(tab)
-
-            inheritTabs = []
-            if key in originalData["inherit"]: 
-                inheritTabs = originalData["inherit"][key]
+            inheritTabs = originalData["inherit"][key]
             for item in generatedData[key]["news"]:
                 if item["title"] in inheritTabs:
                     count += 1
@@ -199,18 +193,14 @@ def generateData():
                     tab["tab"] = count
                     tab["sort"] = count
                     news.append(tab)
-
             generatedData[key]["news"] = news
+    generatedData["minisite"] = originalData
     return
 
 def generateSites():
     "为各热点新闻重新生成新页面"
     for (key, value) in minisiteTemplates.items():
-        s = None
-        if key == "localhost":
-            s = json.dumps(originalData)
-        else:
-            s = json.dumps(generatedData[key])
+        s = json.dumps(generatedData[key])
         generatedSites[key] = value.replace("{$data}", s)
     return
 
@@ -221,7 +211,7 @@ def reload(download = False):
         getMinisiteData()
     generateData()
     generateSites()
-    print("Reload successfully!")
+    logging.info("Reload successfully!")
     return
 
 def close():
@@ -237,7 +227,7 @@ def processCommand(name, args):
     if name == "view":
         print(generatedData["kingsoft"])
     elif name == "open":
-        webbrowser.open(minisiteHosts["localhost"] + "/kingsoft/default")
+        webbrowser.open(minisiteHosts["localhost"] + "/kingsoft")
     elif name == "reload":
         reload()
     elif name == "help" or name == "?":
@@ -259,25 +249,27 @@ class MyFileEventHandler(FileSystemEventHandler):
 
     def on_moved(self, event):
         if event.is_directory:
-            print("directory moved from {0} to {1}".format(event.src_path, event.dest_path))
+            logging.debug("Directory moved from {0} to {1}".format(event.src_path, event.dest_path))
         else:
-            print("file moved from {0} to {1}".format(event.src_path, event.dest_path))
+            logging.debug("File moved from {0} to {1}".format(event.src_path, event.dest_path))
 
     def on_created(self, event):
         if event.is_directory:
-            print("directory created: {0}".format(event.src_path))
+            logging.debug("Directory created: {0}".format(event.src_path))
         else:
-            print("file created: {0}".format(event.src_path))
+            logging.debug("File created: {0}".format(event.src_path))
 
     def on_deleted(self, event):
         if event.is_directory:
-            print("directory deleted: {0}".format(event.src_path))
+            logging.debug("Directory deleted: {0}".format(event.src_path))
         else:
-            print("file deleted: {0}".format(event.src_path))
+            logging.debug("File deleted: {0}".format(event.src_path))
 
     def on_modified(self, event):
         if event.is_directory:
-            print("directory modified: {0}".format(event.src_path))
+            logging.debug("Directory modified: {0}".format(event.src_path))
         else:
-            print("file modified: {0}".format(event.src_path))
-            if "news_data.json" in event.src_path: reload()
+            logging.debug("File modified: {0}".format(event.src_path))
+            if "news_data.json" in event.src_path:
+                logging.info("News data had been modified. Reloading.")
+                reload()
