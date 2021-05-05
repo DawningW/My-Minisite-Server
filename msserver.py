@@ -93,13 +93,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 content = wraphtml(content)
                 self.wfile.write(content.encode("utf-8"))
                 f.close()
-            elif paths[0] == "static" and os.path.isfile("./assets/" + paths[1]):
-                # mimetype = imghdr.what("./data/" + paths[1]) # "image/{}".format(mimetype)
-                mimetype = filetype.guess_mime("./assets/" + paths[1])
+            elif paths[0] == "static" and os.path.isfile("./assets/" + '/'.join(paths[1:])):
+                # mimetype = imghdr.what("./assets/" + '/'.join(paths[1:])) # "image/{}".format(mimetype)
+                mimetype = filetype.guess_mime("./assets/" + '/'.join(paths[1:]))
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Content-type", mimetype)
+                self.send_header("Cache-Control", "max-age=3600")
                 self.end_headers()
-                f = open("./assets/" + paths[1], "rb")
+                f = open("./assets/" + '/'.join(paths[1:]), "rb")
                 shutil.copyfileobj(f, self.wfile)
                 f.close()
             elif paths[0] == "robots.txt" and enable_robotstxt:
