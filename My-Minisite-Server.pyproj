@@ -19,7 +19,7 @@
     <IsWindowsApplication>False</IsWindowsApplication>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <CommandLineArguments>debug</CommandLineArguments>
-    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.9</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,8 +33,9 @@
     <Compile Include="app.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="client-kminisite\mitmaddon.py" />
     <Compile Include="client-pyqt\client.py" />
-    <Compile Include="mitmaddon.py">
+    <Compile Include="config.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="msserver.py">
@@ -55,10 +56,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.7" />
-    <InterpreterReference Include="Global|PythonCore|3.7-32" />
-  </ItemGroup>
-  <ItemGroup>
     <Interpreter Include="..\Python-Test\mitmproxy\">
       <Id>mitmproxy</Id>
       <Version>3.7</Version>
@@ -70,7 +67,11 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="client-kminisite\" />
     <Folder Include="client-pyqt\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.9" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Web.targets" />
   <!-- Specify pre- and post-build commands in the BeforeBuild and 

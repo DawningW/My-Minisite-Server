@@ -4,8 +4,6 @@ import os
 import threading
 import logging
 import utils
-if utils.getSystem() == utils.System.WINDOWS:
-    from SysTrayIcon import SysTrayIcon
 
 trayThread = None
 tray = None
@@ -23,14 +21,15 @@ def runTray():
     "添加系统托盘"
     global tray
     if utils.getSystem() == utils.System.WINDOWS:
-        logging.info("Init system tray for windows.")
+        from SysTrayIcon import SysTrayIcon
+        logging.info("Init system tray for Windows.")
         menuOptions = (("显示/隐藏", None, onOptionClicked), ("退出", None, onOptionClicked))
         tray = SysTrayIcon("./icon.ico", "我的热点新闻服务器", onTrayClicked, menuOptions)
         tray.loop()
     elif utils.getSystem() == utils.System.LINUX:
-        logging.info("System tray doesn't support linux.")
+        logging.info("System tray doesn't support Linux.")
     elif utils.getSystem() == utils.System.MACOS:
-        logging.info("System tray doesn't support macOS.")
+        logging.info("System tray doesn't support MacOS.")
     else:
         logging.info("System tray doesn't support this system.")
     return

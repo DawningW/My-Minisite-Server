@@ -1,5 +1,11 @@
 #coding= utf-8
-import socket, sys, traceback, threading, time, select
+
+import sys
+import time
+import traceback
+import threading
+import socket
+import select
 
 MAX_HEADER_SIZE = 4096
 RECV_SIZE = 512
@@ -136,6 +142,7 @@ if __name__ == '__main__':
     finally:
         print("end server")
     sys.exit(0)
+
 '''
 实现了http1.1的服务器代理功能
 其实现依赖于http请求头的固定格式

@@ -1,16 +1,16 @@
 # coding=utf-8
 
-import os
 import sys
 import copy
 import re
 import logging
-import configparser
 import json
 import requests
 import webbrowser
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+from config import parser as config
 from msserver import ThreadingHTTPServer
 
 # 正则表达式
@@ -38,25 +38,10 @@ generatedData = {}
 generatedSites = {}
 
 def run():
-    # 读取配置文件
-    config = configparser.ConfigParser()
-    if not os.path.exists("./settings.ini"):
-        logging.info("Can't find settings. Creating settings.ini.")
-        config.set("DEFAULT", "ip", "127.0.0.1")
-        config.set("DEFAULT", "port", "80")
-        config.set("DEFAULT", "host", "http://yourserver.com")
-        config.set("DEFAULT", "silent", "false")
-        config.set("DEFAULT", "allow_webspiders", "false")
-        with open("./settings.ini", "w") as configFile:
-            config.write(configFile)
-    else:
-        config.read("./settings.ini")
-    address = config.get("DEFAULT", "ip")
+    # 加载配置
+    host = config.get("DEFAULT", "host")
     port = config.getint("DEFAULT", "port")
-    minisiteHosts["minisite"] = config.get("DEFAULT", "host")
-    if config.getboolean("DEFAULT", "silent"):
-        from systraymgr import onTrayClicked
-        onTrayClicked()
+    minisiteHosts["minisite"] = config.get("DEFAULT", "website")
     robotstxt = not config.getboolean("DEFAULT", "allow_webspiders")
     # 初始化会话
     global session
@@ -76,12 +61,12 @@ def run():
     generateSites()
     # 启动服务器
     global server
-    server = ThreadingHTTPServer(address, port, generatedSites, robotstxt)
+    server = ThreadingHTTPServer(host, port, generatedSites, robotstxt)
     server.start()
     # 自动重载数据
     global observer
     observer = Observer()
-    observer.schedule(MyFileEventHandler(), "./data")
+    observer.schedule(FileEventHandler(), "./data")
     observer.start()
     # 接受用户输入
     while True:
@@ -123,9 +108,9 @@ def getMinisiteData():
                 logging.error("An error has occurred when getting webpage: %s", e)
                 logging.info("Load alternate data from local.")
                 with open("./data/kingsoft_template.html", encoding = "utf-8") as f:
-                    minisiteTemplates[key] = json.loads(f.read())
+                    minisiteTemplates[key] = f.read()
                 with open("./data/kingsoft_data.json", encoding = "utf-8") as f:
-                    minisiteData[key] = f.read()
+                    minisiteData[key] = json.loads(f.read())
     return
 
 def generateData():
@@ -227,7 +212,8 @@ def processCommand(name, args):
     if name == "view":
         print(generatedData["kingsoft"])
     elif name == "open":
-        webbrowser.open(minisiteHosts["localhost"] + "/kingsoft")
+        port = server.server_port
+        webbrowser.open("http://localhost:{}/kingsoft".format(port))
     elif name == "reload":
         reload()
     elif name == "help" or name == "?":
@@ -243,7 +229,7 @@ def processCommand(name, args):
         print("Unknown command. Type \"help\" or \"?\" for more helps.")
     return
 
-class MyFileEventHandler(FileSystemEventHandler):
+class FileEventHandler(FileSystemEventHandler):
     def __init__(self):
         super().__init__()
 

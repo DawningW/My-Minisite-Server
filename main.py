@@ -5,6 +5,7 @@ import sys
 import atexit
 import logging
 
+import config
 import systraymgr
 import app
 
@@ -23,6 +24,10 @@ if __name__ == "__main__":
         logging.basicConfig(filename = "./latest.log", filemode = "w", level = logging.INFO)
         logging.getLogger().addHandler(logging.StreamHandler())
         logging.info("Welcome to my minisite server. Author: wc.")
+        # 加载配置文件
+        config.load()
+        if config.parser.getboolean("DEFAULT", "silent"):
+            systraymgr.onTrayClicked()
         # 初始化系统托盘
         systraymgr.initTray()
         # 运行应用

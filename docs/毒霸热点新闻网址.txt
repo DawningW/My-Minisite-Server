@@ -1,0 +1,16 @@
+无法访问:
+1334,1517,1601,8001,8003
+正在维护:
+https://hotnews.duba.com/minisite/default/
+https://hotnews.duba.com/minisite/1338/
+https://hotnews.duba.com/minisite/1516/
+可用:
+https://hotnews.duba.com/minisite/1335/
+https://hotnews.duba.com/minisite/1337/
+https://hotnews.duba.com/minisite/1509/
+(精简版)https://hotnews.duba.com/minisite/1339/
+
+type字段
+跑马灯:1
+右上1:4
+右上2:5

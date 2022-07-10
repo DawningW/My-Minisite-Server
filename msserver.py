@@ -20,6 +20,8 @@ Disallow: /
 sites = {}
 enable_robotstxt = False
 
+test_ip = []
+
 class ThreadingHTTPServer(Thread, ThreadingMixIn, HTTPServer):
     def __init__(self, address, port, *args, **kwargs):
         Thread.__init__(self, daemon = True, args = args, kwargs = kwargs)
@@ -57,6 +59,10 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def address_string(self):
         real_ip = self.headers.get("X-Forwarded-For", self.client_address[0])
+        if test_ip.count(real_ip) == 0:
+            ua = self.headers.get("User-Agent", "No User Agent")
+            logging.info("%s User-Agent: %s" % (real_ip, ua))
+            test_ip.append(real_ip)
         return real_ip
 
     def handle_one_request(self):
@@ -76,6 +82,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         "HTTP GET"
         try:
             path, sep, arg = self.path.partition("?")
+            if arg != "":
+                logging.info("%s GET %s" % (self.address_string(), self.path))
+                pass
             paths = path[1:].split("/")
             if paths[0] != "content" and paths[0] in sites:
                 self.send_response(HTTPStatus.OK)
